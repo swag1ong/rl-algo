@@ -16,34 +16,41 @@ class Agent(ABC):
         self.env = env
 
     @abstractmethod
-    def train(self):
+    def train(self, *args, **kwargs):
         """
         Signature for training
 
-        :return: Optimal policy
         """
 
         pass
 
     @abstractmethod
-    def evaluate(self, pi):
+    def evaluate(self, *args, **kwargs):
         """
         Signature for evaluation
 
-        :param pi: input policy for evaluation
-        :return: Value function
         """
 
         pass
 
+    @abstractmethod
+    def sample(self, *args, **kwargs):
 
-class Policy(ABC):
+        pass
+
+    @abstractmethod
+    def predict(self, *args, **kwargs):
+
+        pass
+
+
+class PolicyBase(ABC):
     """
     A base policy class for all policies
     """
 
     @abstractmethod
-    def __getitem__(self, s):
+    def __getitem__(self, *args, **kwargs):
         pass
 
 
@@ -51,23 +58,6 @@ class ValFunc(ABC):
     """
     A base value function class for all value functions
     """
-
-    def __init__(self, val=None):
-
-        if not val:
-            self.val = {}
-
-        else:
-            self.val = val.copy()
-
-    def init_state(self, s, value):
-
-        if s not in self.val.keys():
-            self.val[s] = value
-
-    def __repr__(self):
-
-        return repr(self.val)
 
     @abstractmethod
     def __getitem__(self, s):
