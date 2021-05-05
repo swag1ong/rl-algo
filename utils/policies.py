@@ -1,4 +1,4 @@
-from template import PolicyBase
+from base import PolicyBase
 import numpy as np
 from utils.value_functions import ActionValFunc, StateValFunc
 from collections import defaultdict
