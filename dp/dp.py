@@ -1,4 +1,4 @@
-from template import Agent
+from base import Agent
 import numpy as np
 from collections import defaultdict
 from utils.policies import RandomPolicy, GreedyPolicy
