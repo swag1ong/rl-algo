@@ -1,9 +1,10 @@
-from template import Policy
+from template import PolicyBase
 import numpy as np
 from utils.value_functions import ActionValFunc, StateValFunc
+from collections import defaultdict
 
 
-class GreedyPolicy(Policy):
+class GreedyPolicy(PolicyBase):
     """
 
     Greedy Policy class, given a value function Q or V, return a probability distribution
@@ -25,46 +26,54 @@ class GreedyPolicy(Policy):
         self.env = env
         self.gamma = gamma
         self.val = val
-        self._A = {}
-
-    @property
-    def val(self):
-
-        return self._val
-
-    @val.setter
-    def val(self, vf):
-
-        if not isinstance(vf, (ActionValFunc, StateValFunc)):
-            raise ValueError(f'value function {vf} is not valid, available value functions are Q, V')
-
-        if isinstance(vf, StateValFunc) and (self.env is None or self.gamma is None):
-            raise ValueError(f'please make sure you have a env object when val_func is V')
-
-        self._val = vf
 
     def _get_policy(self, s):
 
-        if isinstance(self.val, ActionValFunc):
-            val = self.val[s]
+        if not self.env and not self.gamma:
+            self._val = self.val[s]
 
         else:
-            p = self.env.env.P
-            val = [0] * self.env.action_space.n
+            dynamics = self.env.env.P
+            self._val = [0] * self.env.action_space.n
 
-            for a in p[s].keys():
-                dynamics = p[s][a]
+            for a in dynamics[s].keys():
 
-                for prob, s_prime, r, _ in dynamics:
-                    val[a] = val[a] + prob * (r + self.gamma * self.val[s_prime])
-
-        actions = np.arange(len(val))
-        best_action = np.random.choice(actions[val == np.max(val)])
-        self._A[s] = np.where(actions == best_action, 1.0, 0.0)
+                for prob, s_prime, r, _ in dynamics[s][a]:
+                    self.val[a] = self.val[a] + prob * (r + self.gamma * self.val[s_prime])
 
     def __getitem__(self, s):
 
-        if s not in self._A.keys():
-            self._get_policy(s)
+        self._get_policy(s)
+        actions = np.arange(len(self._val))
+        best_action = np.random.choice(actions[self._val == np.max(self._val)])
+        A = np.where(actions == best_action, 1.0, 0.0)
 
-        return self._A[s]
+        return A
+
+
+class Policy(PolicyBase):
+
+    def __init__(self, policy):
+
+        self.policy = policy
+
+    def __getitem__(self, s):
+
+        if callable(self.policy):
+
+            return self.policy(s)
+
+        else:
+
+            return self.policy[s]
+
+
+class RandomPolicy(PolicyBase):
+
+    def __init__(self, n_act):
+
+        self._policy = defaultdict(lambda: [1 / n_act] * n_act)
+
+    def __getitem__(self, s):
+
+        return self._policy[s]
